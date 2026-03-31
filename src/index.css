@@ -1,0 +1,153 @@
+/* ═══════════════════════════════════════════════════════════════
+   ChessRevanced — Global Styles & Design System
+   Minimalist Cream & Olive Green Theme
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Core palette */
+  --bg0: #F9F8F4;
+  --bg1: #F1EEDB;
+  --bg2: #E6E2CE;
+  --bg3: #D4CEB6;
+  --bg4: #C0B89C;
+  
+  /* Primary theme replaces gold */
+  --gold: #5B6B45;
+  --gold-bright: #414C32;
+  --gold-dim: #7A8D5F;
+  --gold-glow: transparent;
+  
+  /* Text */
+  --cream: #22271A;
+  --cream-dim: #616A54;
+  --cream-mid: #404C31;
+  
+  /* Semantic */
+  --win: #4A8C3C;
+  --win-bright: #3A732E;
+  --loss: #C84B31;
+  --loss-bright: #A63C26;
+  --draw: #8A9476;
+  --draw-bright: #6F7A5E;
+  
+  /* Borders */
+  --border: #E6E2CE;
+  --border-hover: #C0B89C;
+  
+  /* Fonts */
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-mono: 'Inter', -apple-system, sans-serif;
+  --font-body: 'Inter', -apple-system, sans-serif;
+  
+  /* Transitions */
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg0);
+  color: var(--cream);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg0);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-hover);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gold-dim);
+}
+
+/* Selection */
+::selection {
+  background: rgba(91, 107, 69, 0.25);
+  color: var(--cream);
+}
+
+/* Links */
+a {
+  color: var(--gold);
+  text-decoration: none;
+  transition: color 0.2s var(--ease-smooth);
+}
+a:hover {
+  color: var(--gold-bright);
+}
+
+/* Keyframes */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes boardAppear {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Utility classes */
+.fade-in {
+  animation: fadeIn 0.4s var(--ease-smooth) forwards;
+}
+
+.slide-up {
+  animation: slideUp 0.5s var(--ease-smooth) forwards;
+}
+
+.glass {
+  background: rgba(249, 248, 244, 0.85); /* Changed from dark to light frosted glass */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Minimalist Background texture */
+.bg-chess-pattern {
+  position: fixed;
+  inset: 0;
+  opacity: 0.02;
+  pointer-events: none;
+  background-image: repeating-conic-gradient(var(--gold) 0% 25%, transparent 0% 50%);
+  background-size: 40px 40px;
+  z-index: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  html { font-size: 14px; }
+}

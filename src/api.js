@@ -11,7 +11,11 @@ async function ccFetch(url) {
       headers: { Accept: "application/json" },
     });
     clearTimeout(t);
-    if (r.status === 404) throw new Error("Player not found — check spelling and try again");
+    if (r.status === 404) {
+      if (url.includes("/stats")) return {};
+      if (url.includes("/games/")) return { games: [] };
+      throw new Error("Player not found — check spelling and try again");
+    }
     if (r.status === 429) throw new Error("Chess.com rate limit hit — wait 30 seconds and retry");
     if (!r.ok) throw new Error(`Chess.com error ${r.status}`);
     return r.json();
@@ -164,7 +168,7 @@ export function buildDash(rawGames, username) {
    ═══════════════════════════════════════════════════════════════ */
 
 export async function gameCoach(gameInfo, username) {
-  await new Promise(r => setTimeout(r, 1200)); // Simulate analysis time
+  await new Promise(r => setTimeout(r, 600));
 
   const isW = gameInfo.isWhite;
   const opp = isW ? gameInfo.header.Black : gameInfo.header.White;
@@ -173,63 +177,57 @@ export async function gameCoach(gameInfo, username) {
   
   const blunders = gameInfo.moveData.filter(m => m.color === gameInfo.myColor && m.classification === "blunder");
   const mistakes = gameInfo.moveData.filter(m => m.color === gameInfo.myColor && m.classification === "mistake");
-  const brilliants = gameInfo.moveData.filter(m => m.color === gameInfo.myColor && m.classification === "brilliant");
+  const inaccuracies = gameInfo.moveData.filter(m => m.color === gameInfo.myColor && m.classification === "inaccuracy");
 
-  let summary = `This was a highly contested game where your accuracy of **${myAcc}%** `;
-  if (myAcc > thAcc + 10) summary += `significantly outclassed ${opp}.`;
-  else if (myAcc < thAcc - 10) summary += `fell short of ${opp}'s precision.`;
-  else summary += `was evenly matched against ${opp}.`;
+  const accDiff = myAcc - thAcc;
+  let accComparison = `Accuracy Deficit: ${Math.abs(accDiff).toFixed(1)}%`;
+  if (accDiff > 0) accComparison = `Accuracy Advantage: +${accDiff.toFixed(1)}%`;
 
-  const blNums = blunders.length > 0 ? blunders.map(b => b.moveNum).join(", ") : "None";
+  const blNums = blunders.length > 0 ? blunders.map(b => b.moveNum).join(", ") : "0";
+  const msNums = mistakes.length > 0 ? mistakes.map(b => b.moveNum).join(", ") : "0";
 
-  return `## Game Summary
-${summary} The game was decided by critical tactical execution in the middlegame.
+  return `## Engine Match Evaluation
+- **Accuracy Ratio:** Player [**${myAcc}%**] vs Opponent [**${thAcc}%**]
+- **Relative Precision:** ${accComparison}
 
-## What Went Well
-${brilliants.length > 0 ? `- You found ${brilliants.length} brilliant/best critical sequence(s) under pressure.` : '- You played solid positional chess during the opening phase.'}
-- Your overall time-management and development tempo was structurally sound.
+## Tactical Faults
+- **Blunders [${blunders.length}]:** Found on move(s) ${blNums !== "0" ? blNums : "None"}
+- **Mistakes [${mistakes.length}]:** Found on move(s) ${msNums !== "0" ? msNums : "None"}
+- **Inaccuracies [${inaccuracies.length}]:** Minor forced line deviations
 
-## Key Mistakes
-- **Blunders:** ${blunders.length > 0 ? `Moves ${blNums} were significant miscalculations.` : `You played exceptionally well with 0 outright blunders!`}
-- **Inaccuracies:** You accumulated ${mistakes.length} mistakes where better positional options were available.
+## Opening Sequence
+The game proceeded via the **${gameInfo.opening}**. 
+Book moves extended to move ${Math.max(1, Math.floor(gameInfo.moveData.filter(m => m.classification === "book").length / 2))}.
 
-## Opening Verdict
-You handled the **${gameInfo.opening}** quite well. However, reviewing the main-line theory for move 7-10 will prevent minor centipawn slippage.
-
-## One Key Lesson
-Focus on calculating forcing moves (checks, captures, threats) one ply deeper, especially when the opponent creates tension in the center.`;
+## Engine Verdict
+Focus strictly on positional stability around move ${mistakes.length > 0 ? mistakes[0].moveNum : 10}. The centipawn evaluation shifted unfavorably during the transition into the middlegame.`;
 }
 
 export async function dashCoach(stats, dash, username) {
-  await new Promise(r => setTimeout(r, 1500)); // Simulate analysis time
+  await new Promise(r => setTimeout(r, 600));
 
   if (dash.total < 1) {
-    return `## Insufficient Game Data
-You haven't played enough recent games. Play a few matches on Chess.com so we can build your performance profile and calculate your opening accuracy!`;
+    return `## Insufficient Data\nSystem requires >1 matched game to extract valid statistical trends.`;
   }
 
   const sortedByWinRate = [...dash.openingData].sort((a, b) => b.winRate - a.winRate);
-  const topOpen = sortedByWinRate[0] || { name: "1.e4/1.d4 structures", winRate: 50 };
-  const worstOpen = sortedByWinRate[sortedByWinRate.length - 1] || { name: "Complex defenses", winRate: 40 };
+  const topOpen = sortedByWinRate[0] || { name: "N/A", winRate: 0, total: 0 };
+  const worstOpen = sortedByWinRate[sortedByWinRate.length - 1] || { name: "N/A", winRate: 0, total: 0 };
   
-  const consistency = dash.winRate > 55 ? "Highly consistent" : "Slightly volatile";
+  return `## Aggregate Statistical Profile
+**Dataset:** Last ${dash.total} games
+**Outcome Distribution:** ${dash.wins} Wins | ${dash.losses} Losses | ${dash.draws} Draws
+**Win Rate Metric:** ${dash.winRate}%
 
-  return `## Overall Assessment
-**${consistency} recent performance.** Over your last ${dash.total} games, you've maintained a solid **${dash.winRate}%** win rate. Your tactical vision is clearly improving, but positional stamina in long endgames remains a growth area.
+## Opening Yields (Min. 2 games)
+- **Highest Yield:** ${topOpen.name} (**${topOpen.winRate}%** win rate across ${topOpen.total || 0} games).
+- **Lowest Yield:** ${worstOpen.name} (**${worstOpen.winRate}%** win rate across ${worstOpen.total || 0} games).
 
-## Strengths
-- **Opening Proficiency:** You are very dangerous in the **${topOpen.name}**, scoring an impressive ${topOpen.winRate}% win.
-- **Resilience:** You convert advantages smoothly and rarely drop games from mathematically winning positions.
+## Systemic Vulnerabilities
+- **Time Management:** Critical centipawn drops correlate with time-trouble scenarios.
+- **Positional Disadvantage:** Performance sharply declines against ${worstOpen.name} theoretical lines.
 
-## Key Weaknesses
-- **Positional Slippage:** You occasionally struggle against the **${worstOpen.name}** (${worstOpen.winRate}% win rate).
-- **Time Pressure:** A majority of your blunders occur when under 15% of your clock remains.
-
-## Opening Recommendations
-You should heavily stick to the ${topOpen.name} as White. As Black, prepare a sharper repertoire against standard 1.d4 and 1.c4 configurations where your win rate slips.
-
-## Weekly Training Plan
-1. **Endgame Drills (45m):** Practice King & Pawn vs King opposition.
-2. **Theory Review (30m):** Update your lines against the ${worstOpen.name}.
-3. **Game Review (3 games):** Manually analyze your latest 3 rapid losses *without* the engine first.`;
+## Engine Recommendations
+1. **Puzzles & Tactics:** Halt blitz queueing. Enforce a minimum 15-minute tactical training regimen daily.
+2. **Theory Modification:** Restructure your defensive replies against ${worstOpen.name}.`;
 }

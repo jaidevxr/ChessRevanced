@@ -48,8 +48,13 @@ export default function App() {
   }, []);
 
   const search = useCallback(async () => {
-    const u = inputVal.trim();
+    let u = inputVal.trim();
     if (!u) return;
+
+    // Auto-extract username if a full URL is pasted
+    if (u.includes("/")) {
+      u = u.split("/").filter(Boolean).pop().split("?")[0];
+    }
     setLoading(true);
     setError("");
     setProfile(null);

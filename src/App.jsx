@@ -415,6 +415,7 @@ export default function App() {
             <div style={{
               display: "flex",
               alignItems: "center",
+              flexWrap: "wrap",
               gap: 18,
               marginBottom: 22,
               padding: "18px 22px",
@@ -481,6 +482,7 @@ export default function App() {
             {/* Tab bar */}
             <div style={{
               display: "flex",
+              flexWrap: "wrap",
               gap: 4,
               marginBottom: 18,
               background: C.bg1,

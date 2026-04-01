@@ -3,7 +3,7 @@
    ═══════════════════════════════════════════════════════════════ */
 import { C, SM } from "../tokens";
 
-export default function EvalBar({ ev, h = 460 }) {
+export default function EvalBar({ ev, h = 460, minHeight }) {
   const cl = Math.max(-800, Math.min(800, ev || 0));
   const wpct = Math.round(50 + (cl / 800) * 50);
   const isWhiteAdvantage = (ev || 0) > 0;
@@ -14,6 +14,7 @@ export default function EvalBar({ ev, h = 460 }) {
     <div style={{
       width: 24,
       height: h,
+      minHeight: minHeight,
       display: "flex",
       flexDirection: "column",
       borderRadius: 6,

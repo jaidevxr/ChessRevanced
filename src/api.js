@@ -147,15 +147,16 @@ export function buildDash(rawGames, username) {
   const tcData = Object.entries(byTC).map(([name, value]) => ({ name, value }));
 
   const total = rawGames.length;
+  const winRate = total > 0 ? Math.round((wins / total) * 100) : 0;
   const radarData = [
-    { skill: "Win Rate", value: Math.min(100, Math.round((wins / Math.max(total, 1)) * 130)) },
+    { skill: "Win Rate", value: winRate },
     { skill: "Openings", value: openingData.length > 0 ? Math.round(openingData.slice(0, 3).reduce((s, o) => s + o.winRate, 0) / 3) : 50 },
-    { skill: "Rapid/Classical", value: Math.min(100, Math.round(((byTC.Rapid || 0) + (byTC.Classical || 0)) / Math.max(total, 1) * 200)) },
-    { skill: "Resilience", value: Math.min(100, Math.round(100 - (losses / Math.max(total, 1)) * 120)) },
-    { skill: "Volume", value: Math.min(100, Math.round((total / 45) * 100)) },
+    { skill: "Rapid/Classical", value: total > 0 ? Math.round(((byTC.Rapid || 0) + (byTC.Classical || 0)) / total * 100) : 0 },
+    { skill: "Resilience", value: total > 0 ? Math.max(0, Math.round(100 - (losses / total) * 100)) : 100 },
+    { skill: "Volume", value: Math.min(100, Math.round((total / 90) * 100)) },
   ];
 
-  return { total, wins, losses, draws, winRate: total > 0 ? Math.round((wins / total) * 100) : 0, monthData, openingData, tcData, radarData, gameList };
+  return { total, wins, losses, draws, winRate, monthData, openingData, tcData, radarData, gameList };
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -202,8 +203,9 @@ Focus on calculating forcing moves (checks, captures, threats) one ply deeper, e
 export async function dashCoach(stats, dash, username) {
   await new Promise(r => setTimeout(r, 1500)); // Simulate analysis time
 
-  const topOpen = dash.openingData[0] || { name: "1.e4/1.d4 structures", winRate: 50 };
-  const worstOpen = dash.openingData[dash.openingData.length - 1] || { name: "Complex defenses", winRate: 40 };
+  const sortedByWinRate = [...dash.openingData].sort((a, b) => b.winRate - a.winRate);
+  const topOpen = sortedByWinRate[0] || { name: "1.e4/1.d4 structures", winRate: 50 };
+  const worstOpen = sortedByWinRate[sortedByWinRate.length - 1] || { name: "Complex defenses", winRate: 40 };
   
   const consistency = dash.winRate > 55 ? "Highly consistent" : "Slightly volatile";
 

@@ -147,7 +147,61 @@ a:hover {
   z-index: 0;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
+/* Responsive Utilities */
+.chess-grid {
+  display: grid;
+  grid-template-columns: minmax(auto, 600px) 1fr;
+  gap: 18px;
+  align-items: start;
+}
+
+.mobile-col {
+  display: flex;
+  flex-direction: row;
+}
+
+.board-container {
+  width: 100%;
+  max-width: 600px;
+  aspect-ratio: 1 / 1;
+}
+
+.text-fluid-h1 {
+  font-size: clamp(24px, 8vw, 38px);
+}
+
+@media (max-width: 800px) {
   html { font-size: 14px; }
+  
+  .chess-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    gap: 16px;
+  }
+  
+  .mobile-col {
+    flex-direction: column;
+  }
+
+  .res-grid-3 { grid-template-columns: 1fr; }
+  .res-grid-pie { grid-template-columns: 1fr; }
+  .res-grid-2 { grid-template-columns: 1fr; }
+}
+
+.res-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.res-grid-pie {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 14px;
+}
+
+.res-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
 }

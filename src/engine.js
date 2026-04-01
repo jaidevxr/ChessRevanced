@@ -18,11 +18,20 @@ function countMaterial(fen) {
   return material;
 }
 
-// ═══════ Lichess WDL Model (Expected Score) ═══════
+// ═══════ Modern Stockfish 15+ WDL Model (Expected Score) ═══════
 export function stockfishWDL(cp, fen) {
-  // Lichess expects wp as Expected Score: 50 + 50 * (2 / PI) * atan(cp / 290.68)
   const v = Math.max(-4000, Math.min(4000, cp));
-  return 50 + 50 * (2.0 / Math.PI) * Math.atan(v / 290.680623072);
+  const material = fen ? countMaterial(fen) : 58;
+  const m = Math.max(17, Math.min(78, material)) / 58.0;
+  
+  // Model scaling constants
+  const as = [-72.32565836, 185.93832038, -144.58862193, 416.44950446];
+  const bs = [83.86794042, -136.06112997, 69.98820887, 47.62901433];
+  
+  const a = (((as[0] * m + as[1]) * m + as[2]) * m) + as[3];
+  const b = (((bs[0] * m + bs[1]) * m + bs[2]) * m) + bs[3];
+  
+  return 100 / (1 + Math.exp((a - v) / b));
 }
 
 // ═══════ Lichess-exact per-move accuracy ═══════

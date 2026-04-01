@@ -116,11 +116,8 @@ export default function OpeningsTab({ dash }) {
                 <td style={{ padding: "10px 14px", color: C.drawBright, textAlign: "center" }}>{o.draws}</td>
                 <td style={{ padding: "10px 14px", textAlign: "center" }}>
                   <span style={{
-                    padding: "3px 9px",
-                    borderRadius: 5,
                     fontSize: 10,
                     fontWeight: 700,
-                    background: o.winRate >= 55 ? "#0d2415" : o.winRate <= 35 ? "#2a0d0d" : "#1a1500",
                     color: o.winRate >= 55 ? C.winBright : o.winRate <= 35 ? C.lossBright : C.goldBright,
                   }}>{o.winRate}%</span>
                 </td>

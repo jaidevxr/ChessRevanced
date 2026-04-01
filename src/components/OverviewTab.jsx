@@ -25,7 +25,7 @@ export default function OverviewTab({ dash, stats }) {
   return (
     <div className="slide-up" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       {/* Rating cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
+      <div className="res-grid-3">
         {rtgs.map(({ l, d, icon, gradient }) => (
           <div key={l} style={{
             background: gradient,
@@ -82,7 +82,7 @@ export default function OverviewTab({ dash, stats }) {
       </div>
 
       {/* Pie + Monthly bar */}
-      <div style={{ display: "grid", gridTemplateColumns: "200px 1fr", gap: 14 }}>
+      <div className="res-grid-pie">
         {/* Win rate pie */}
         <div style={{
           background: C.bg1,
@@ -175,7 +175,7 @@ export default function OverviewTab({ dash, stats }) {
       </div>
 
       {/* Radar + Time Controls */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+      <div className="res-grid-2">
         {/* Skill radar */}
         <div style={{
           background: C.bg1,

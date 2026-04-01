@@ -228,15 +228,12 @@ export default function GameReview({ game, username, onBack }) {
         </div>
       </div>
 
-      {/* Main grid: Board | EvalBar | Right Panel */}
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "auto 26px 1fr",
-        gap: 18,
-        alignItems: "start",
-      }}>
-        {/* Board column */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      {/* Main grid: Board+Eval | Right Panel */}
+      <div className="chess-grid" style={{ gap: 18 }}>
+        {/* Play column */}
+        <div className="mobile-board-row" style={{ display: "flex", gap: "12px", alignItems: "start" }}>
+          {/* Board & Nav Column */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, flex: 1, minWidth: 0 }}>
           {/* Opponent name bar */}
           <div style={{
             display: "flex",
@@ -326,10 +323,13 @@ export default function GameReview({ game, username, onBack }) {
         </div>
 
         {/* Eval bar */}
-        <EvalBar ev={curEval} h={460} />
+        <div className="eval-bar-wrapper" style={{ display: "flex", flexShrink: 0 }}>
+          <EvalBar ev={curEval} h="100%" minHeight={300} />
+        </div>
+      </div>
 
-        {/* Right panel */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      {/* Right panel */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 0 }}>
           {/* Accuracy + classification panel */}
           <div style={{
             background: C.bg1,

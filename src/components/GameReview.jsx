@@ -194,6 +194,17 @@ export default function GameReview({ game, username, onBack }) {
               {game.engineUsed}{game.analysisDepth ? ` · d${game.analysisDepth}` : ""}
             </span>
           )}
+          <span style={{
+            fontSize: 9,
+            color: C.creamDim,
+            fontFamily: SM,
+            background: C.bg3,
+            padding: "2px 7px",
+            borderRadius: 4,
+            border: `1px dashed ${C.border}`,
+          }}>
+            [Algo Calc: W={game.algorithmicWhiteAcc}% B={game.algorithmicBlackAcc}%] | [API True: W={game.apiWhiteAcc || 'N/A'}% B={game.apiBlackAcc || 'N/A'}%]
+          </span>
         </div>
         <div style={{
           marginLeft: "auto",

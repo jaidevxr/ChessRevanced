@@ -7,14 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "train": "node train_caps_model.js",
-    "train:v2": "node train_nn_v2.js",
-    "train:eval": "node train_eval_nn.js",
-    "collect:v2": "node collect_data_v2.js"
+    "preview": "vite preview"
   },
   "dependencies": {
-    "@tensorflow/tfjs-node": "^4.22.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "recharts": "^3.8.1",

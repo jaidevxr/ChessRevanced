@@ -95,7 +95,7 @@ export default function GamesTab({ dash, ChessClass, onSelectGame }) {
             }} />
           </div>
           <div style={{ fontSize: 9, color: C.creamDim, fontFamily: SM, marginTop: 4 }}>
-            ML-calibrated accuracy · Stockfish depth 14 move analysis
+            Lichess Accuracy Math · Stockfish 10 depth 14 analysis / API True CAPS
           </div>
         </div>
       )}

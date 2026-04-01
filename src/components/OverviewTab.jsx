@@ -251,7 +251,7 @@ export default function OverviewTab({ dash, stats }) {
                   <div style={{
                     width: `${p}%`,
                     height: "100%",
-                    background: `linear-gradient(90deg, ${cols[name] || C.creamDim}, ${cols[name] || C.creamDim}80)`,
+                    background: cols[name] || C.creamDim,
                     borderRadius: 3,
                     transition: "width 0.8s cubic-bezier(0.4, 0, 0.2, 1)",
                   }} />

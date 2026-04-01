@@ -4,7 +4,6 @@
    Material-Adjusted Win Probability Model & Neural Network
    ═══════════════════════════════════════════════════════════════ */
 import { StockfishEngine } from './stockfish';
-import { predictCAPS } from './caps_nn';
 
 const PV = { p: 100, n: 320, b: 330, r: 500, q: 900, k: 20000 };
 const MAT_VAL = { p: 1, n: 3, b: 3, r: 5, q: 9 };
@@ -19,19 +18,11 @@ function countMaterial(fen) {
   return material;
 }
 
-// ═══════ Stockfish 16+ Dynamic WDL Model ═══════
+// ═══════ Lichess WDL Model (Expected Score) ═══════
 export function stockfishWDL(cp, fen) {
+  // Lichess expects wp as Expected Score: 50 + 50 * (2 / PI) * atan(cp / 290.68)
   const v = Math.max(-4000, Math.min(4000, cp));
-  const material = fen ? countMaterial(fen) : 58;
-  const m = Math.max(17, Math.min(78, material)) / 58.0;
-
-  const as = [-72.32565836, 185.93832038, -144.58862193, 416.44950446];
-  const bs = [83.86794042, -136.06112997, 69.98820887, 47.62901433];
-
-  const a = (((as[0] * m + as[1]) * m + as[2]) * m) + as[3];
-  const b = (((bs[0] * m + bs[1]) * m + bs[2]) * m) + bs[3];
-
-  return 100 / (1 + Math.exp((a - v) / b));
+  return 50 + 50 * (2.0 / Math.PI) * Math.atan(v / 290.680623072);
 }
 
 // ═══════ Lichess-exact per-move accuracy ═══════
@@ -151,8 +142,10 @@ export async function analyzeGame(pgn, username, Chess, playerStats, onProgress,
   const allWPs = []; 
 
   try {
-    let fen = chess.fen();
-    let prevResult = await engine.analyze(fen, DEPTH);
+    let startFen = chess.fen();
+    let fen = startFen; // For evaluating material
+    let moveHistory = [];
+    let prevResult = await engine.analyze(startFen, moveHistory, DEPTH);
     const initialWP = stockfishWDL(prevResult.score, fen);
     allWPs.push(initialWP);
 
@@ -167,6 +160,9 @@ export async function analyzeGame(pgn, username, Chess, playerStats, onProgress,
 
       chess.move(mv);
       fen = chess.fen();
+      
+      const playedUCI = mv.from + mv.to + (mv.promotion || '');
+      moveHistory.push(playedUCI);
 
       if (mv.captured) cc[side].captures++;
       if (chess.in_check()) cc[side].checks++;
@@ -174,21 +170,22 @@ export async function analyzeGame(pgn, username, Chess, playerStats, onProgress,
       let result;
       if (chess.game_over()) {
         if (chess.in_checkmate()) {
-          result = { score: mover === 'w' ? -30000 : 30000, bestMove: '0000', depth: DEPTH };
+          result = { score: -30000, bestMove: '0000', depth: DEPTH };
         } else {
           result = { score: 0, bestMove: '0000', depth: DEPTH };
         }
       } else {
-        result = await engine.analyze(fen, DEPTH);
+        result = await engine.analyze(startFen, moveHistory, DEPTH);
       }
 
       const afterCP = -result.score;
       const wpAfter = stockfishWDL(afterCP, fen);
-      allWPs.push(stockfishWDL(result.score, fen)); 
+      
+      const whiteEval = mover === "w" ? afterCP : -afterCP;
+      allWPs.push(stockfishWDL(whiteEval, fen)); 
 
       const wpLoss = Math.max(0, wpBefore - wpAfter);
 
-      const playedUCI = mv.from + mv.to + (mv.promotion || '');
       const isBestMove = playedUCI === bestMoveUCI;
       const isSac = mv.captured && (PV[mv.piece] || 0) > (PV[mv.captured] || 0);
 
@@ -202,8 +199,6 @@ export async function analyzeGame(pgn, username, Chess, playerStats, onProgress,
         if (mover === "w") wMoveAccs.push(mAcc);
         else bMoveAccs.push(mAcc);
       }
-
-      const whiteEval = mover === "w" ? afterCP : -afterCP;
 
       moveData.push({
         fen,
@@ -229,30 +224,17 @@ export async function analyzeGame(pgn, username, Chess, playerStats, onProgress,
   }
 
   // ═══════ Compute game accuracy ═══════
-  const lichessWhiteAcc = lichessGameAccuracy(wMoveAccs, allWPs);
-  const lichessBlackAcc = lichessGameAccuracy(bMoveAccs, allWPs);
+  const rawLichessW = lichessGameAccuracy(wMoveAccs, allWPs);
+  const rawLichessB = lichessGameAccuracy(bMoveAccs, allWPs);
 
-  // Neural Network Inference Fallback
-  const tcBase = parseInt(hdr.TimeControl) || 600;
-  const we = parseInt(hdr.WhiteElo) || playerStats?.elo || 1500;
-  const be = parseInt(hdr.BlackElo) || playerStats?.elo || 1500;
-  const resStr = hdr.Result || "*";
-  
-  const wRes = resStr === '1-0' ? 1 : resStr === '0-1' ? 0 : 0.5;
-  const bRes = resStr === '0-1' ? 1 : resStr === '1-0' ? 0 : 0.5;
+  // Pure Mathematical Evaluation
+  const lichessW = Math.max(10, Math.min(100, Math.round(rawLichessW * 10) / 10));
+  const lichessB = Math.max(10, Math.min(100, Math.round(rawLichessB * 10) / 10));
 
-  const cwPred = predictCAPS([we, be, tcBase, history.length, cc.white.captures, cc.white.checks, wRes, 3.0]);
-  const cbPred = predictCAPS([be, we, tcBase, history.length, cc.black.captures, cc.black.checks, bRes, 3.0]);
+  const finalWhiteAcc = apiAccuracies?.white || lichessW;
+  const finalBlackAcc = apiAccuracies?.black || lichessB;
 
-  // Hybrid Model (60% Lichess algorithm, 40% CAPS Neural Network)
-  const hybridWhite = Math.round((lichessWhiteAcc * 0.6 + cwPred * 0.4) * 10) / 10;
-  const hybridBlack = Math.round((lichessBlackAcc * 0.6 + cbPred * 0.4) * 10) / 10;
-
-  const hasApiAcc = apiAccuracies && apiAccuracies.white != null && apiAccuracies.black != null;
-  const finalWhiteAcc = hasApiAcc ? Math.round(apiAccuracies.white * 10) / 10 : Math.max(10, Math.min(100, hybridWhite));
-  const finalBlackAcc = hasApiAcc ? Math.round(apiAccuracies.black * 10) / 10 : Math.max(10, Math.min(100, hybridBlack));
-
-  const source = hasApiAcc ? "Chess.com API" : "Hybrid NN + Lichess";
+  const source = "Stockfish 10 (Local Wasm)";
 
   return {
     header: hdr,
@@ -262,12 +244,16 @@ export async function analyzeGame(pgn, username, Chess, playerStats, onProgress,
     classCounts: cc,
     whiteAcc: finalWhiteAcc,
     blackAcc: finalBlackAcc,
+    algorithmicWhiteAcc: lichessW,
+    algorithmicBlackAcc: lichessB,
+    apiWhiteAcc: apiAccuracies?.white,
+    apiBlackAcc: apiAccuracies?.black,
     result: hdr.Result || "*",
     opening: hdr.Opening || hdr.ECO || "Unknown Opening",
     eco: hdr.ECO || "",
     startFen: new Chess().fen(),
-    engineUsed: `${source} + SF d${DEPTH}`,
+    engineUsed: source,
     analysisDepth: DEPTH,
-    accuracySource: hasApiAcc ? 'api' : 'hybrid',
+    accuracySource: apiAccuracies ? "Chess.com API (True CAPS)" : "Lichess Accuracy Math",
   };
 }

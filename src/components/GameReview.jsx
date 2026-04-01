@@ -185,7 +185,6 @@ export default function GameReview({ game, username, onBack }) {
               fontSize: 8,
               color: C.winBright,
               fontFamily: SM,
-              background: "#0d2415",
               padding: "2px 7px",
               borderRadius: 4,
               border: `1px solid ${C.win}`,
@@ -216,11 +215,9 @@ export default function GameReview({ game, username, onBack }) {
           alignItems: "center",
         }}>
           <span style={{
-            padding: "3px 8px",
-            borderRadius: 4,
-            background: game.result === "1-0" ? (isW ? "#0d2415" : "#2a0d0d") : game.result === "0-1" ? (isW ? "#2a0d0d" : "#0d2415") : "#14142a",
             color: game.result === "1-0" ? (isW ? C.winBright : C.lossBright) : game.result === "0-1" ? (isW ? C.lossBright : C.winBright) : C.drawBright,
             fontWeight: 600,
+            textTransform: "uppercase",
           }}>
             {game.result}
           </span>
@@ -246,8 +243,8 @@ export default function GameReview({ game, username, onBack }) {
           }}>
             <div style={{
               width: 14, height: 14, borderRadius: 3,
-              background: isW ? "#1a1a1a" : "#f0f0f0",
-              border: "1px solid #555",
+              background: isW ? C.goldBright : "#f0f0f0",
+              border: isW ? `1px solid ${C.gold}` : "1px solid #ccc",
             }} />
             <span style={{ fontFamily: SM, fontSize: 13, color: C.cream, flex: 1, fontWeight: 500 }}>
               {thName || "Opponent"}
@@ -272,8 +269,8 @@ export default function GameReview({ game, username, onBack }) {
           }}>
             <div style={{
               width: 14, height: 14, borderRadius: 3,
-              background: isW ? "#f0f0f0" : "#1a1a1a",
-              border: "1px solid #ccc",
+              background: isW ? "#f0f0f0" : C.goldBright,
+              border: isW ? "1px solid #ccc" : `1px solid ${C.gold}`,
             }} />
             <span style={{ fontFamily: SM, fontSize: 13, color: C.cream, flex: 1, fontWeight: 500 }}>
               {myName || username}

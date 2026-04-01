@@ -118,17 +118,15 @@ export default function GamesTab({ dash, ChessClass, onSelectGame }) {
           {/* Color indicator */}
           <div style={{
             width: 14, height: 14, borderRadius: 3,
-            background: g.isWhite ? "#f0f0f0" : "#2a2a2a",
-            border: g.isWhite ? "1px solid #ccc" : "1px solid #555",
-            flexShrink: 0, boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
+            background: g.isWhite ? "#f0f0f0" : C.goldBright,
+            border: g.isWhite ? "1px solid #ccc" : `1px solid ${C.gold}`,
+            flexShrink: 0, boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
           }} />
 
           {/* Outcome badge */}
           <span style={{
-            padding: "3px 9px", borderRadius: 5,
-            background: g.outcome === "win" ? "#0d2415" : g.outcome === "loss" ? "#2a0d0d" : "#14142a",
             color: g.outcome === "win" ? C.winBright : g.outcome === "loss" ? C.lossBright : C.drawBright,
-            fontFamily: SM, fontSize: 9, letterSpacing: "0.08em", flexShrink: 0, fontWeight: 700, textTransform: "uppercase",
+            fontFamily: SM, fontSize: 10, letterSpacing: "0.08em", flexShrink: 0, fontWeight: 700, textTransform: "uppercase",
           }}>{g.outcome}</span>
 
           {/* Game info */}

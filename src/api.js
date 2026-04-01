@@ -150,9 +150,9 @@ export function buildDash(rawGames, username) {
   const winRate = total > 0 ? Math.round((wins / total) * 100) : 0;
   const radarData = [
     { skill: "Win Rate", value: winRate },
-    { skill: "Openings", value: openingData.length > 0 ? Math.round(openingData.slice(0, 3).reduce((s, o) => s + o.winRate, 0) / 3) : 50 },
+    { skill: "Openings", value: openingData.length > 0 ? Math.round(openingData.slice(0, 3).reduce((s, o) => s + o.winRate, 0) / 3) : 0 },
     { skill: "Rapid/Classical", value: total > 0 ? Math.round(((byTC.Rapid || 0) + (byTC.Classical || 0)) / total * 100) : 0 },
-    { skill: "Resilience", value: total > 0 ? Math.max(0, Math.round(100 - (losses / total) * 100)) : 100 },
+    { skill: "Resilience", value: total > 0 ? Math.max(0, Math.round(100 - (losses / total) * 100)) : 0 },
     { skill: "Volume", value: Math.min(100, Math.round((total / 90) * 100)) },
   ];
 
@@ -202,6 +202,11 @@ Focus on calculating forcing moves (checks, captures, threats) one ply deeper, e
 
 export async function dashCoach(stats, dash, username) {
   await new Promise(r => setTimeout(r, 1500)); // Simulate analysis time
+
+  if (dash.total < 1) {
+    return `## Insufficient Game Data
+You haven't played enough recent games. Play a few matches on Chess.com so we can build your performance profile and calculate your opening accuracy!`;
+  }
 
   const sortedByWinRate = [...dash.openingData].sort((a, b) => b.winRate - a.winRate);
   const topOpen = sortedByWinRate[0] || { name: "1.e4/1.d4 structures", winRate: 50 };
